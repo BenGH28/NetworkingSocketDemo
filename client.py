@@ -1,0 +1,22 @@
+import socket
+import threading
+
+def conError():
+    print "connection error"
+    s.close()
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+host = socket.gethostname()
+port = 8000
+server = "142.66.140.48"
+s.connect((server, port))
+
+s.sendto("Hello World", (server, port))
+timer = threading.Timer(5.0, conError)
+data, addr = s.recvfrom(1024)
+if data == "Hello Universe":
+    print "Message: ", data
+    s.sendto("Message Received", (server, port))
+    data, addr = s.recvfrom(1024)
+    print data

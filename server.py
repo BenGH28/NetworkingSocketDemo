@@ -3,8 +3,8 @@ import random
 import time
 import threading
 
-def conError()
-    print "connection error"
+def conError():
+    print ("connection error")
     s.close()
 
 array = []
@@ -19,11 +19,10 @@ data, addr = s.recvfrom(1024) # listening
 
 while True:
     if data == "Hello World":
-        timer.
-        print "message: ", data
-        s.sendto("Hello Universe", addr)
+        print ("message: ", data)
+        s.sendto(b'Hello Universe', addr)
     data, addr = s.recvfrom(1024)
-    print data
+    print (data)
     s.sendto(bytes(array), addr)
-    print array
+    print (array)
     s.close()

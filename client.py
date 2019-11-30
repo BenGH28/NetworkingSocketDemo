@@ -27,7 +27,7 @@ def estConnection(port, host):
             data, addr = sock.recvfrom(1024)
             reRecv = True
         except:
-            print("this didn't receive #1")
+            print("trying to receive")
             count += 1
     count = 0
     if data:
@@ -47,10 +47,22 @@ def estConnection(port, host):
         return None
 
 def disconnection(data, soc, addr):
+    count = 0
     try:
         if data == b'close':
-            soc.sendto(b'terminated', (server, port))
-            d, addr = soc.recvfrom(1024)
+            while count < 3:
+                try:
+                    soc.sendto(b'terminated', (server, port))
+                    count = 3
+                except:
+                    count += 1
+            count = 0
+            while count < 3:
+                try:
+                    d, addr = soc.recvfrom(1024)
+                    count = 3
+                except:
+                    count += 1
             if d == b'okay':
                 print("Connection gracefully terminated")
                 return True
@@ -70,7 +82,7 @@ try:
 except:
     print("Not an active server address. Connection aborted.")
 
-while data is not None and data:
+while data is not None:
     try:
         data, addr = sock.recvfrom(1024) #recieve array
         print("receiving: {} from {}".format(data,addr))

@@ -10,17 +10,17 @@ def conError():
 def estConnection(port, host):
     address = (host,port)
     #send 1
-    sent = sock.sendto(b'10', address)
+    sent = socket.sendto(b'10', address)
     print("sending {} bytes to {} ".format(sent,address))
     #receive 1
-    data, addr = sock.recvfrom(1024)
+    data, addr = socket.recvfrom(1024)
     if data:
         print ("data received: ", data)
         #send 2
-        sent = sock.sendto(b'ack', address)
+        sent = socket.sendto(b'ack', address)
         print("sending {} to {}".format(sent, address))
         print("connection established")
-        return data
+        return addr
     else:
         return None
 
@@ -44,10 +44,9 @@ def extractPacket(packet):
     return seqNum, packet[4:]
 
 # Receive packets from server
-def receive(socket, output):
+def receive(socket, filename):
     expectedNum = 0
-    file = open("output", "w")
-    print ("Waiting")
+    file = open(filename, 'wb')
     while True:
         # Get the next packet from server
         packet, addr = socket.recvfrom(bufferSize)
@@ -55,6 +54,7 @@ def receive(socket, output):
             break
         seqNum, data = extractPacket(packet)
         print("Got packet", seqNum)
+
         # Send back an ACK
         if seqNum == expectedSeq:
             print("Expected packet received")
@@ -72,14 +72,14 @@ def receive(socket, output):
 #To run
 bufferSize = 1024
 host = socket.gethostname()
+server = '142.66.140.48'
 port = 8000
 if __name__ == '__main__':
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    clientAddress = (host, port)
-    serverAddress = (host, 0)
-    socket.bind(clientAddress)
-    output = sys.argv[0]
-    receive(socket, output)
+    # socket.bind(host, port)
+    server = estConnection(port, server)
+    filename = sys.argv[0]
+    receive(socket, filename)
 
 #sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 #host = socket.gethostname()

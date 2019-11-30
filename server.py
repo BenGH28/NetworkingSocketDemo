@@ -12,19 +12,20 @@ def conError():
     print ("connection error")
     s.close()
 
-def estConnection(port, host):
-        data, addr = sock.recvfrom(1024) # receive 1
+def estConnection():
+        data, addr = socket.recvfrom(1024) # receive 1
         if data:
             print ("Received {} from {}".format(data,addr))
-            sock.sendto(data, addr) # sending 1
+            socket.sendto(data, addr) # sending 1
             print ("Sending {} to {}".format(data,addr))
-            data, addr = sock.recvfrom(1024) # receive 2
+            data, addr = socket.recvfrom(1024) # receive 2
         if data:
             print("Connection Established")
             return addr
         else:
             print("Connection Failed")
-            sock.close()
+            return None
+            # sock.close()
 def disconnection(data, sock, addr):
         if data == b'terminated':
             sock.sendto(b'okay', addr)
@@ -65,25 +66,31 @@ def receive(socket):
     global mutex
     global num
     global timer
-
-    while True:
+    value = True
+    while value:
+        mutex.aquire()
         packet, addr = socket.recvfrom(bufferSize)
         packet, _ = packet, addr
         ack, _ = extractPacket(packet)
-
-        # If we get an ACK for the first in-flight packet
-        print("Got ACK", ack)
-        if (ack >= num):
-            mutex.acquire()
-            num = ack + 1
-            print("num updated", num)
-            timer.stop()
-            mutex.release()
+        if not packet:
+            print ("No ACK")
+        else:
+            # If we get an ACK for the first in-flight packet
+            print("Got ACK", ack)
+            if (ack >= num):
+                print("1")
+                print("2")
+                num = ack + 1
+                print("num updated", num)
+                timer.stop()
+                timer.start()
+                print("3")
+                value = False
 
 #send using thread
-def send(socker, filename):
+def send(socket, filename, address):
     global mutex, num, timer
-    file = open(filename, "r")
+    file = open(filename, 'rb')
 
      # Add all the packet to the buffer
     packet = []
@@ -95,48 +102,48 @@ def send(socker, filename):
         packet.append(makePacket(seqNum, data))
         seqNum += 1
 
-    packetSeq = len(packet)
-    print("Received", packetSeq)
-    windowSize = windowSizeSet(packetSeq)
+    packetNums = 0
+    windowSize = windowSizeSet(packetNums)
     sendNext = 0
     num = 0
 
-    # Start the receiver thread
-    _thread.start_new_thread(receive, (socket,))
+    while num < packetNums:
 
-    while num < packetSeq:
-        mutex.acquire()
         # Send all the packet in window size
         while sendNext < num + windowSize:
             print("Sending packet", sendNext)
-            socket.sendto(packet[sendNext], clientAddress)
+            socket.sendto(packet[sendNext],address)
             sendNext += 1
 
         # Start timer
         if not timer.running():
             print("Start timer")
+            print("a")
             timer.start()
-
-        # Wait until timer goes off or get an ACK
-        while timer.running() and not timer.timeout():
-            mutex.release()
-            print("Sleeping")
-            time.sleep(timerSleep)
-            mutex.acquire()
-
-            if timer.timeout():
-                print("Timeout")
-                timer.stop();
-                sendNext = num
-            else:
-                print("Shifting window")
-                windowSize = windowSizeSet(packetSeq)
-        mutex.release()
-
+            print("b")
+            # Wait until timer goes off or get an ACK
+            while not timer.timeout():
+                # Start the receiver thread
+                print("4")
+                _thread.start_new_thread(receive, (socket,))
+                print("c")
+                print("Received", packetNums)
+                mutex.release()
+                print("Sleeping")
+                time.sleep(timerSleep)
+                mutex.acquire()
+                if timer.timeout():
+                    print("Timeout")
+                    timer.stop();
+                    sendNext = num
+                else:
+                    print("Shifting window")
+                    windowSize = windowSizeSet(packetNums)
+                    mutex.release()
     file.close()
 
 timerSleep = 0.10
-timerTimeout = 5
+timerTimeout = 3
 windowSize = 3
 bufferSize = 1024
 dataSize = 12
@@ -152,14 +159,16 @@ timer = Timer(timerTimeout)
 #to run
 if __name__ == '__main__':
 
+
     host = socket.gethostname()
     clientAddress = (host, port)
-    serverAddress = (host, 0)
+    # serverAddress = (host, 0)
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    socket.bind(serverAddress)
+    socket.bind(clientAddress)
     fileCreate()
     filename = sys.argv[0]
-    send(socket, filename)
+    addrSend = estConnection()
+    send(socket, filename, addrSend)
 
 
 #array = []

@@ -43,11 +43,11 @@ def extractPacket(packet):
     seqNum = int.from_bytes(packet[0:4], byteorder = "little", signed = True)
     return seqNum, packet[4:]
 
-
 # Receive packets from server
-def receive(socker, filename):
-	expectedNum = 0
-    file = open(filename, 'wb')
+def receive(socket, output):
+    expectedNum = 0
+    file = open("output", "w")
+    print ("Waiting")
     while True:
         # Get the next packet from server
         packet, addr = socket.recvfrom(bufferSize)
@@ -55,7 +55,6 @@ def receive(socker, filename):
             break
         seqNum, data = extractPacket(packet)
         print("Got packet", seqNum)
-
         # Send back an ACK
         if seqNum == expectedSeq:
             print("Expected packet received")
@@ -67,7 +66,7 @@ def receive(socker, filename):
         else:
             print("Sending ACK", expectedNum - 1)
             packet = makePacket(expectedNum - 1)
-			socket.sendto(packet, addr)
+            socket.sendto(packet, addr)
     file.close()
 
 #To run
@@ -76,9 +75,11 @@ host = socket.gethostname()
 port = 8000
 if __name__ == '__main__':
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    socket.bind(host, port)
-    filename = sys.argv[0]
-    receive(socket, filename)
+    clientAddress = (host, port)
+    serverAddress = (host, 0)
+    socket.bind(clientAddress)
+    output = sys.argv[0]
+    receive(socket, output)
 
 #sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 #host = socket.gethostname()

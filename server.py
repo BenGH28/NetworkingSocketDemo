@@ -83,7 +83,7 @@ def receive(socket):
 #send using thread
 def send(socker, filename):
     global mutex, num, timer
-    file = open(filename, 'rb')
+    file = open(filename, "r")
 
      # Add all the packet to the buffer
     packet = []
@@ -109,7 +109,7 @@ def send(socker, filename):
         # Send all the packet in window size
         while sendNext < num + windowSize:
             print("Sending packet", sendNext)
-            socket.sendto(packet[sendNext],clientAddress)
+            socket.sendto(packet[sendNext], clientAddress)
             sendNext += 1
 
         # Start timer
@@ -151,7 +151,6 @@ timer = Timer(timerTimeout)
 
 #to run
 if __name__ == '__main__':
-
 
     host = socket.gethostname()
     clientAddress = (host, port)

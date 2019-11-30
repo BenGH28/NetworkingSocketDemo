@@ -9,8 +9,10 @@ def conError():
     print ("connection error")
     s.close()
 
+
 def estConnection(port, host):
         data, addr = sock.recvfrom(1024) # receive 1
+
         if data:
             print ("Received {} from {}".format(data,addr))
             sock.sendto(data, addr) # sending 1
@@ -34,6 +36,8 @@ for i in range(20):
     array.append(random.randint(1,1001))
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 data_array = pickle.dumps(array)
+
+print("Awaiting connection...")
 
 host = socket.gethostname()
 port = 8000

@@ -9,9 +9,10 @@ import sys
 from timer import Timer
 
 #Resources for threading
+a = 0.5
 num = 0
 mutex = _thread.allocate_lock()
-timer = Timer(timerTimeout)
+timer = Timer(a)
 
 def conError():
     print ("connection error")
@@ -70,7 +71,6 @@ def extractPacket(packet):
 def send(socket, filename, address):
     global mutex, num, timer
     file = open(filename, 'rb')
-
      # Add all the packet to the buffer
     packet = []
     seqNum = 0
@@ -80,23 +80,22 @@ def send(socket, filename, address):
             break
         packet.append(makePacket(seqNum, data))
         seqNum += 1
-
-    packetNums = len(packet)
-    windowSize = windowSizeSet(packetNums)
+    packetNums = dataSize
+    windowSize = 3 #windowSizeSet(packetNums)
     sendNext = 0
     num = 0
-	
+    i = 0
 	#start the receiver thread
-	_thread.start_new_thread(receive, (socket,))
-
-    while num < packetNums:
-
+    _thread.start_new_thread(receive, (socket,))
+    while num < (packetNums/windowSize):
         # Send all the packet in window size
-        while sendNext < num + windowSize:
+        while i < windowSize and sendNext < dataSize:
             print("Sending packet", sendNext)
-            socket.sendto(packet[sendNext],address)
+            t1 = threading.thread(socket.sendto, (packet[sendNext], address))
+            t1.start()
+            t1.join()
             sendNext += 1
-
+        i = 0
         # Start timer
         if not timer.running():
             print("Start timer")
@@ -107,7 +106,7 @@ def send(socket, filename, address):
         while timer.running() and not timer.timeout():
 		# Start the receiver thread
             print("4")
-            mutex.release()
+            #mutex.release()
             print("c")
             print("Sleeping")
             time.sleep(timerSleep)
@@ -116,10 +115,10 @@ def send(socket, filename, address):
             print("Timeout")
             timer.stop();
             sendNext = num
-        else:
-            print("Shifting window")
-            windowSize = windowSizeSet(packetNums)
-         mutex.release()
+        #else:
+            #print("Shifting window")
+            #windowSize = windowSizeSet(packetNums)
+        mutex.release()
     file.close()
 
 # Receive thread
@@ -129,16 +128,16 @@ def receive(socket):
     global timer
     value = True
     while value:
-        packet, addr = socket.recvfrom(bufferSize)
-        packet, _ = packet, addr
-        ack, _ = extractPacket(packet)
-		print("Got Ack", ack)
-		if(ack >= base):
-			mutex.acquire()
-			num = ack + 1
-			print("Num updated), num)
-			timer.stop()
-			mutex.release()
+        pkt, addr = socket.recvfrom(bufferSize)
+        pkt1, _ = pkt, addr
+        ack, _ = extractPacket(pkt1)
+        print("Got Ack", ack)
+        if(ack >= num):
+            mutex.acquire()
+            num = ack + 1
+            print("Num updated", num)
+            timer.stop()
+            mutex.release()
 
 timerSleep = 0.10
 timerTimeout = 3
@@ -155,10 +154,13 @@ if __name__ == '__main__':
 
     host = socket.gethostname()
     clientAddress = (host, port)
-    # serverAddress = (host, 0)
+    serverAddress = (host, 0)
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     socket.bind(clientAddress)
     fileCreate()
+    for i in range (len(dataList)):
+            print (i, dataList[i])
+
     filename = sys.argv[0]
     addrSend = estConnection()
     send(socket, filename, addrSend)

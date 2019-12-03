@@ -56,7 +56,7 @@ def receive(socket, filename):
         print("Got packet", seqNum)
 
         # Send back an ACK
-        if seqNum == expectedSeq:
+        if seqNum == expectedNum:
             print("Expected packet received")
             print("Sending ACK", expectedNum)
             packet = makePacket(expectedNum)
@@ -72,7 +72,7 @@ def receive(socket, filename):
 #To run
 bufferSize = 1024
 host = socket.gethostname()
-server = '142.66.140.48'
+server = '142.66.140.52'
 port = 8000
 if __name__ == '__main__':
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

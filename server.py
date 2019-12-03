@@ -63,13 +63,20 @@ def extractPacket(packet):
 
 # Receive thread
 def receive(socket):
+    print("")
+    print("in recv")
     global mutex
     global num
     global timer
     value = True
     while value:
-        mutex.aquire()
+        # try:
+        #     mutex.aquire()
+        # except:
+        #     print("mutex issues")
+        print("trying to receive")
         packet, addr = socket.recvfrom(bufferSize)
+        print("received bob")
         packet, _ = packet, addr
         ack, _ = extractPacket(packet)
         if not packet:
@@ -78,21 +85,14 @@ def receive(socket):
             # If we get an ACK for the first in-flight packet
             print("Got ACK", ack)
             if (ack >= num):
-                print("1")
-                print("2")
                 num = ack + 1
                 print("num updated", num)
                 timer.stop()
                 timer.start()
-                print("3")
                 value = False
 
-#send using thread
-def send(socket, filename, address):
-    global mutex, num, timer
+def readFile(filename):
     file = open(filename, 'rb')
-
-     # Add all the packet to the buffer
     packet = []
     seqNum = 0
     while True:
@@ -102,36 +102,46 @@ def send(socket, filename, address):
         packet.append(makePacket(seqNum, data))
         seqNum += 1
 
+#send using thread
+def send(socket, filename, address):
+    global mutex, num, timer
+     # Add all the packet to the buffer
+    readFile(filename)
     packetNums = 0
     windowSize = windowSizeSet(packetNums)
     sendNext = 0
     num = 0
 
-    while num < packetNums:
-
+    while num <= packetNums:
         # Send all the packet in window size
         while sendNext < num + windowSize:
             print("Sending packet", sendNext)
             socket.sendto(packet[sendNext],address)
             sendNext += 1
+            packetNums += 1
 
         # Start timer
         if not timer.running():
             print("Start timer")
-            print("a")
             timer.start()
-            print("b")
             # Wait until timer goes off or get an ACK
             while not timer.timeout():
                 # Start the receiver thread
-                print("4")
-                _thread.start_new_thread(receive, (socket,))
-                print("c")
+                try:
+                    _thread.start_new_thread(receive, (socket,))
+                except AttributeError and RuntimeError:
+                    print("thread issues")
                 print("Received", packetNums)
-                mutex.release()
+                try:
+                    mutex.release()
+                except:
+                    print("release issues")
                 print("Sleeping")
                 time.sleep(timerSleep)
-                mutex.acquire()
+                try:
+                    mutex.acquire()
+                except:
+                    print("can't get thread")
                 if timer.timeout():
                     print("Timeout")
                     timer.stop();
@@ -139,7 +149,11 @@ def send(socket, filename, address):
                 else:
                     print("Shifting window")
                     windowSize = windowSizeSet(packetNums)
-                    mutex.release()
+                    try:
+                        mutex.release()
+                    except:
+                        print("final release...not")
+    num += 1
     file.close()
 
 timerSleep = 0.10
@@ -158,8 +172,6 @@ timer = Timer(timerTimeout)
 
 #to run
 if __name__ == '__main__':
-
-
     host = socket.gethostname()
     clientAddress = (host, port)
     # serverAddress = (host, 0)
@@ -169,6 +181,7 @@ if __name__ == '__main__':
     filename = sys.argv[0]
     addrSend = estConnection()
     send(socket, filename, addrSend)
+    print("end session")
 
 
 #array = []

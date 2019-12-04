@@ -1,6 +1,22 @@
 import socket
-import struct
 import time
+
+def fileWrite(data):
+    file = open("file.txt", "w+")
+    while data is not None:
+        file.write(data)
+    file.close()
+
+def receive():
+    while data is not None:
+        t = Timer
+        if time.time() - start > 5.0
+            data, addr = sock.recvfrom(1024)
+            fileWrite(data)
+            socket.sendto(b'ack', addr)
+        end = time.time()
+        if end - start > 5.0
+            socket.sendto(b'ack', addr)
 
 def conError():
     print ("connection error")
@@ -27,11 +43,12 @@ def estConnection(port, host):
             data, addr = sock.recvfrom(1024)
             reRecv = True
         except:
-            print("trying to receive")
+            print("this didn't receive #1")
             count += 1
     count = 0
     if data:
         print ("data received: ", data)
+        fileWrite(data)
         #send 2
         while True and count < 3:
             try:
@@ -47,22 +64,10 @@ def estConnection(port, host):
         return None
 
 def disconnection(data, soc, addr):
-    count = 0
     try:
         if data == b'close':
-            while count < 3:
-                try:
-                    soc.sendto(b'terminated', (server, port))
-                    count = 3
-                except:
-                    count += 1
-            count = 0
-            while count < 3:
-                try:
-                    d, addr = soc.recvfrom(1024)
-                    count = 3
-                except:
-                    count += 1
+            soc.sendto(b'terminated', (server, port))
+            d, addr = soc.recvfrom(1024)
             if d == b'okay':
                 print("Connection gracefully terminated")
                 return True
@@ -75,16 +80,16 @@ sock.settimeout(2)
 host = socket.gethostname()
 port = 8000
 data = None
-# server = "142.66.140.47"
+#server = "142.66.140.355"
 try:
     server= input("Enter the IP address of the server to connect to: ")
     data = estConnection(port, server)
 except:
     print("Not an active server address. Connection aborted.")
 
-while data is not None:
+while data is not None and data:
     try:
-        data, addr = sock.recvfrom(1024) #recieve array
+        data, addr = sock.recvfrom(1024) #receive array
         print("receiving: {} from {}".format(data,addr))
         # ack = 0
         # sock.sendto(bytes(ack),(server, port))

@@ -1,18 +1,12 @@
 import socket
 import random
-import time
+from timer import Timer
 import threading
 import struct
 import pickle
 
-def conError():
-    print ("connection error")
-    s.close()
-
-
 def estConnection(port, host):
         data, addr = sock.recvfrom(1024) # receive 1
-
         if data:
             print ("Received {} from {}".format(data,addr))
             sock.sendto(data, addr) # sending 1
@@ -24,26 +18,68 @@ def estConnection(port, host):
         else:
             print("Connection Failed")
             sock.close()
+
 def disconnection(data, sock, addr):
         if data == b'terminated':
             sock.sendto(b'okay', addr)
             print("Received close acknowledgement from {}".format(addr))
             print("Connection Closed")
             sock.close()
+        else:
+            print("abrupt abort")
 
-array = []
-for i in range(20):
-    array.append(random.randint(1,1001))
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-data_array = pickle.dumps(array)
+def createData():
+    # global dataSize
+    dataList = []
+    file = open("file.txt", "w+")
+    for i in range (12):
+            dataList.append(random.randint(1,1001))
+    for i in dataList:
+        file.write(str(i) + "\n")
+    file.close()
 
-print("Awaiting connection...")
+def send(socket, address, file):
+    with open(file, 'rb') as f:
+        packets = f.read().splitlines()
+    packets = [x.strip() for x in packets]
+    count = 0
+    sendNext = 0
+    t = Timer(5)
 
-host = socket.gethostname()
-port = 8000
-sock.bind((host,port))
-address = estConnection(host, port)
-sock.sendto(b'close', address)
-data, addr = sock.recvfrom(1024)
-print(data)
-disconnection(data, sock, addr)
+    while sendNext < 12:
+        # send all the packets in the window
+        while count < 3:
+            socket.sendto(packets[sendNext], address)
+            count += 1
+            sendNext += 1
+
+        # wait for ack from client
+        t.start()
+        while not t.timeout():
+            ack, addr = socket.recvfrom(1024)
+            if ack:
+                print("received ack: ", ack)
+                break
+        #if we time out send the packet again
+        if t.timeout():
+            socket.sendto(packets[sendNext], address)
+        t.stop()
+        count = 0
+
+
+
+
+if __name__ == "__main__":
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # data_array = pickle.dumps(array)
+    print("Awaiting connection...")
+    host = socket.gethostname()
+    port = 8000
+    createData()
+    sock.bind((host,port))
+    address = estConnection(host, port)
+    send(sock,address, 'file.txt')
+    kill, addr = sock.recvfrom(1024)
+    print(kill)
+    sock.sendto(b'close', address)
+    disconnection(kill, sock, addr)

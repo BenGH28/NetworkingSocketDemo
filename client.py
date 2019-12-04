@@ -1,22 +1,39 @@
 import socket
 import time
+from timer import Timer
 
 def fileWrite(data):
-    file = open("file.txt", "w+")
-    while data is not None:
+    count = 0
+    file = open("file.txt", "w")
+    while data is not None and count < 1:
         file.write(data)
+        count += 1
     file.close()
 
-def receive():
+def receive(data):
+    count = 0
+    file = open("file.txt", "w")
     while data is not None:
-        t = Timer
-        if time.time() - start > 5.0
+        t = Timer(5)
+        t.start()
+        while not t.timeout():
             data, addr = sock.recvfrom(1024)
-            fileWrite(data)
-            socket.sendto(b'ack', addr)
-        end = time.time()
-        if end - start > 5.0
-            socket.sendto(b'ack', addr)
+            if data and data != b'close':
+                print("Received data: ", data)
+                text = str(data)
+                if count == 0:
+                    file.write(text)
+                    file.write("\n")
+                    count += 1
+                else:
+                    count = 0
+                sock.sendto(b'ack', addr)
+            elif data == b'close':
+                file.close()
+                break
+        if t.timeout():
+            sock.sendto(b'resend', addr)
+        t.stop()
 
 def conError():
     print ("connection error")
@@ -48,7 +65,6 @@ def estConnection(port, host):
     count = 0
     if data:
         print ("data received: ", data)
-        fileWrite(data)
         #send 2
         while True and count < 3:
             try:
@@ -64,7 +80,7 @@ def estConnection(port, host):
         return None
 
 def disconnection(data, soc, addr):
-    try:
+    #try:
         if data == b'close':
             soc.sendto(b'terminated', (server, port))
             d, addr = soc.recvfrom(1024)
@@ -72,31 +88,33 @@ def disconnection(data, soc, addr):
                 print("Connection gracefully terminated")
                 return True
         return False
-    except:
-        pass
+    #except:
+    #    pass
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.settimeout(2)
+# sock.settimeout(2)
 host = socket.gethostname()
 port = 8000
 data = None
 #server = "142.66.140.355"
-try:
-    server= input("Enter the IP address of the server to connect to: ")
-    data = estConnection(port, server)
-except:
-    print("Not an active server address. Connection aborted.")
+#try:
+server = input("Enter the IP address of the server to connect to: ")
+data = estConnection(port, server)
+#except:
+#    print("Not an active server address. Connection aborted.")
+
 
 while data is not None and data:
-    try:
-        data, addr = sock.recvfrom(1024) #receive array
-        print("receiving: {} from {}".format(data,addr))
+#    try:
+        receive(data)
+        #data, addr = sock.recvfrom(1024) #receive array
+        #print("receiving: {} from {}".format(data,addr))
         # ack = 0
         # sock.sendto(bytes(ack),(server, port))
         # ack += 1
         closed = disconnection(data, sock,addr)
         if closed:
             break
-    except:
-        print("this didn't receive array")
-        break;
+#    except:
+#        print("this didn't receive array")
+#        break;

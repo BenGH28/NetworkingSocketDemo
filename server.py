@@ -1,9 +1,6 @@
 import socket
 import random
 from timer import Timer
-import threading
-import struct
-import pickle
 import time
 def estConnection(port, host):
         data, addr = sock.recvfrom(1024) # receive 1
@@ -26,15 +23,11 @@ def disconnection(sock, address):
         if kill:
             sock.sendto(b'okay', addr)
             print("Received close acknowledgement from {}".format(addr))
-            print("Connection Closed")
-            # return True
-            # sock.close()
+            print("Connection Closed\n\n")
         else:
             print("abrupt abort")
-            # return False
 
 def createData(filename):
-    # global dataSize
     dataList = []
     file = open(filename, "w+")
     for i in range (12):
@@ -83,9 +76,6 @@ def send(socket, address, file):
         t.stop()
         count = 0
 
-
-
-
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     print("Awaiting connection...")
@@ -98,7 +88,7 @@ if __name__ == "__main__":
         createData(filename)
         address = estConnection(host, port)
         send(sock,address, filename)
-        closed = disconnection(sock,address)
+        disconnection(sock,address)
         print("Awaiting connection...")
         counter += 1
         filename = 'output' + str(counter)

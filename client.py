@@ -7,7 +7,6 @@ def fileWrite(data):
     count = 0
     file = sys.argv[1]
     open(file, "w+")
-
     while data is not None and count < 1:
         file.write(data)
         count += 1
@@ -18,13 +17,11 @@ def receive(data):
     file = open(sys.argv[1], "w")
     x = 0
     dataList = []
-    #seqNum = 0
     while data is not None:
         t = Timer(5)
         t.start()
         try:
             data, addr = sock.recvfrom(1024)
-            #print("1")
             if data and data != b'close':
                 print("Received data: ", data)
                 x +=1
@@ -32,35 +29,24 @@ def receive(data):
                 if count == 0:
                     dataList.append(text)
                     count += 1
-                    #print("2")
                 else:
                     dataList.append(text)
                     count = 0
-                    #print("3")
-                #temp = str(seqNum)
-
                 if x%3 == 0:
                     sock.sendto(b'ack', addr)
                     for a in range (len(dataList)):
                         file.write(dataList[a])
                         file.write("\n")
                     dataList.clear()
-
-                #seqNum += 1
-                #print("4")
             elif data == b'close':
-                #print("6")
                 print(data)
                 file.close()
                 sock.settimeout(None)
-                #sock.close()
                 return data
         except:
             if t.timeout():
-                #print ("5")
                 sock.sendto(b'resend', addr)
                 break
-        #t.stop()
 
 
     print ("connection error")
@@ -102,48 +88,30 @@ def estConnection(port, host):
             except:
                 print("this didn't send #2")
                 count += 1
-
     else:
         return None
 
 def disconnection(data, soc):
-    #try:
-        if data == b'close':
-            sock.sendto(b'terminated', (server, port))
-            print("terminated")
-            d, addr = sock.recvfrom(1024)
-            if d == b'okay':
-                print("Connection gracefully terminated")
-                sock.close()
-                return True
-            else:
-                print("Cant terminate")
-    #except:
-    #    pass
+    if data == b'close':
+        sock.sendto(b'terminated', (server, port))
+        print("terminated")
+        d, addr = sock.recvfrom(1024)
+        if d == b'okay':
+            print("Connection gracefully terminated\n\n")
+            sock.close()
+            return True
+        else:
+            print("Can't terminate")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-# sock.settimeout(2)
 host = socket.gethostname()
 port = 8000
 data = None
-#server = "142.66.140.355"
-#try:
 server = input("Enter the IP address of the server to connect to: ")
 data = estConnection(port, server)
-#except:
-#    print("Not an active server address. Connection aborted.")
 
 while True:
-        data = receive(data)
-
-        #data, addr = sock.recvfrom(1024) #receive array
-        #print("receiving: {} from {}".format(data,addr))
-        # ack = 0
-        # sock.sendto(bytes(ack),(server, port))
-        # ack += 1
-        closed = disconnection(data, sock)
-        if closed:
-            break
-#    except:
-#        print("this didn't receive array")
-#        break;
+    data = receive(data)
+    closed = disconnection(data, sock)
+    if closed:
+        break

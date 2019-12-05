@@ -1,3 +1,9 @@
+"""
+Ben Hunt
+Ryan Bauert
+Austin Kelly
+Tony Ho
+"""
 import socket
 import random
 from timer import Timer

@@ -14,9 +14,9 @@ def receive(data):
     count = 0
     file = open("file.txt", "w")
     value = True
-    seqNum = 0
+    #seqNum = 0
     while data is not None:
-        t = Timer(2)
+        t = Timer(5)
         t.start()
         try:
             data, addr = sock.recvfrom(1024)
@@ -32,9 +32,9 @@ def receive(data):
                 else:
                     count = 0
                     #print("3")
-                temp = str(seqNum)
+                #temp = str(seqNum)
                 sock.sendto(b'ack', addr)
-                seqNum += 1
+                #seqNum += 1
                 #print("4")
             elif data == b'close':
                 #print("6")
@@ -50,7 +50,7 @@ def receive(data):
                 break
         #t.stop()
 
-def conError():
+
     print ("connection error")
     s.close()
 
@@ -122,7 +122,6 @@ data = estConnection(port, server)
 #    print("Not an active server address. Connection aborted.")
 
 while True:
-#    try:
         data = receive(data)
 
         #data, addr = sock.recvfrom(1024) #receive array

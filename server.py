@@ -33,10 +33,10 @@ def disconnection(sock, address):
             print("abrupt abort")
             # return False
 
-def createData():
+def createData(filename):
     # global dataSize
     dataList = []
-    file = open("file.txt", "w+")
+    file = open(filename, "w+")
     for i in range (12):
             dataList.append(random.randint(1,1001))
     for i in dataList:
@@ -58,7 +58,7 @@ def send(socket, address, file):
             if dropRate < 5:
                 print("dropped frame", sendNext)
                 pass
-            elif (dropRate >=5 and dropRate < 35):
+            elif (dropRate >=5 and dropRate < 15):
                 delayTime = round(random.random()*4 + 1,1)
                 print("delayed frame", sendNext, " ", delayTime)
                 time.sleep(delayTime)
@@ -92,9 +92,13 @@ if __name__ == "__main__":
     host = socket.gethostname()
     port = 8000
     sock.bind((host,port))
+    filename = "output"
+    counter = 0
     while True:
-        createData()
+        createData(filename)
         address = estConnection(host, port)
-        send(sock,address, 'file.txt')
+        send(sock,address, filename)
         closed = disconnection(sock,address)
         print("Awaiting connection...")
+        counter += 1
+        filename = 'output' + str(counter)

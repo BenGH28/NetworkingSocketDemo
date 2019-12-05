@@ -1,10 +1,13 @@
 import socket
 import time
+import sys
 from timer import Timer
 
 def fileWrite(data):
     count = 0
-    file = open("file.txt", "w")
+    file = sys.argv[1]
+    open(file, "w+")
+
     while data is not None and count < 1:
         file.write(data)
         count += 1
@@ -12,7 +15,7 @@ def fileWrite(data):
 
 def receive(data):
     count = 0
-    file = open("file.txt", "w")
+    file = open(sys.argv[1], "w")
     x = 0
     dataList = []
     #seqNum = 0

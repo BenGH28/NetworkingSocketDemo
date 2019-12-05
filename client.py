@@ -30,6 +30,8 @@ def receive(data):
                     count += 1
                     #print("2")
                 else:
+                    file.write(text)
+                    file.write("\n")
                     count = 0
                     #print("3")
                 #temp = str(seqNum)

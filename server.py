@@ -27,9 +27,11 @@ def disconnection(sock, address):
             sock.sendto(b'okay', addr)
             print("Received close acknowledgement from {}".format(addr))
             print("Connection Closed")
-            sock.close()
+            # return True
+            # sock.close()
         else:
             print("abrupt abort")
+            # return False
 
 def createData():
     # global dataSize
@@ -47,7 +49,7 @@ def send(socket, address, file):
     packets = [x.strip() for x in packets]
     count = 0
     sendNext = 0
-    t = Timer(5)
+    t = Timer(2)
     dropRate = 0;
     while sendNext < 12:
         # send all the packets in the window
@@ -56,7 +58,7 @@ def send(socket, address, file):
             if dropRate < 5:
                 print("dropped frame", sendNext)
                 pass
-            elif (dropRate >=5 and dropRate < 15):
+            elif (dropRate >=5 and dropRate < 35):
                 delayTime = round(random.random()*4 + 1,1)
                 print("delayed frame", sendNext, " ", delayTime)
                 time.sleep(delayTime)
@@ -69,12 +71,9 @@ def send(socket, address, file):
                 count += 1
                 sendNext += 1
         # wait for ack from client
-        #t.start()
+        t.start()
         while not t.timeout():
-            print("1")
             ack, addr = socket.recvfrom(1024)
-            print("2")
-
             if ack:
                 print("received ack: ", ack)
                 break
@@ -89,12 +88,13 @@ def send(socket, address, file):
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # data_array = pickle.dumps(array)
     print("Awaiting connection...")
     host = socket.gethostname()
     port = 8000
-    createData()
     sock.bind((host,port))
-    address = estConnection(host, port)
-    send(sock,address, 'file.txt')
-    disconnection(sock,address)
+    while True:
+        createData()
+        address = estConnection(host, port)
+        send(sock,address, 'file.txt')
+        closed = disconnection(sock,address)
+        print("Awaiting connection...")

@@ -3,7 +3,7 @@ Our humble implementation of client/server transport layer protocol
 Instructions:
 1. Download all files for the repository located at https://github.com/BenGH28/NetworkingSocketDemo
 2. In a console window on one computer in the folder containing the files. In the console window, type "python3 server.py" to initiate the program and await connection. This will run infintely, so it must be forcefully terminated when the server is done being used (use ctrl C)
-3. On another computer, open a console window and go to the folder containing the files. In the console window, type "python3 client.py output(number)" to start the client to connect to the server. the output and number is the text file that will be saved to the folder location, defined by the user. This is used to sav various outputs that will be sent from the server.
+3. On another computer, open a console window and go to the folder containing the files. In the console window, type "python3 client.py output(number)" to start the client to connect to the server. The output and number is the text file that will be saved to the folder location, defined by the user. This is used to save various outputs that will be sent from the server.
 4. Enter the IP address of the server. If you don't know the address, type "ifconfig" on the server computer before running the server, and locate it in the second text grouping where it says "inet x.x.x.x". For example:
 
 enp0s31f6: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500

@@ -4,7 +4,7 @@ from timer import Timer
 import threading
 import struct
 import pickle
-
+import time
 def estConnection(port, host):
         data, addr = sock.recvfrom(1024) # receive 1
         if data:
@@ -48,18 +48,33 @@ def send(socket, address, file):
     count = 0
     sendNext = 0
     t = Timer(5)
-
+    dropRate = 0;
     while sendNext < 12:
         # send all the packets in the window
         while count < 3:
-            socket.sendto(packets[sendNext], address)
-            count += 1
-            sendNext += 1
-
+            dropRate = random.randint(0,99)
+            if dropRate < 5:
+                print("dropped frame", sendNext)
+                pass
+            elif (dropRate >=5 and dropRate < 15):
+                delayTime = round(random.random()*4 + 1,1)
+                print("delayed frame", sendNext, " ", delayTime)
+                time.sleep(delayTime)
+                socket.sendto(packets[sendNext], address)
+                count += 1
+                sendNext += 1
+            else:
+                socket.sendto(packets[sendNext], address)
+                print("successful frame", sendNext)
+                count += 1
+                sendNext += 1
         # wait for ack from client
-        t.start()
+        #t.start()
         while not t.timeout():
+            print("1")
             ack, addr = socket.recvfrom(1024)
+            print("2")
+
             if ack:
                 print("received ack: ", ack)
                 break

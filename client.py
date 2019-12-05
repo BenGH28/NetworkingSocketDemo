@@ -13,11 +13,14 @@ def fileWrite(data):
 def receive(data):
     count = 0
     file = open("file.txt", "w")
+    value = True
+    seqNum = 0
     while data is not None:
-        t = Timer(5)
+        t = Timer(2)
         t.start()
-        while not t.timeout():
+        try:
             data, addr = sock.recvfrom(1024)
+            #print("1")
             if data and data != b'close':
                 print("Received data: ", data)
                 text = str(data)
@@ -25,15 +28,27 @@ def receive(data):
                     file.write(text)
                     file.write("\n")
                     count += 1
+                    #print("2")
                 else:
                     count = 0
+                    #print("3")
+                temp = str(seqNum)
                 sock.sendto(b'ack', addr)
+                seqNum += 1
+                #print("4")
             elif data == b'close':
+                #print("6")
+                print(data)
                 file.close()
+                sock.settimeout(None)
+                #sock.close()
+                return data
+        except:
+            if t.timeout():
+                #print ("5")
+                sock.sendto(b'resend', addr)
                 break
-        if t.timeout():
-            sock.sendto(b'resend', addr)
-        t.stop()
+        #t.stop()
 
 def conError():
     print ("connection error")
@@ -79,15 +94,18 @@ def estConnection(port, host):
     else:
         return None
 
-def disconnection(data, soc, addr):
+def disconnection(data, soc):
     #try:
         if data == b'close':
-            soc.sendto(b'terminated', (server, port))
-            d, addr = soc.recvfrom(1024)
+            sock.sendto(b'terminated', (server, port))
+            print("terminated")
+            d, addr = sock.recvfrom(1024)
             if d == b'okay':
                 print("Connection gracefully terminated")
+                sock.close()
                 return True
-        return False
+            else:
+                print("Cant terminate")
     #except:
     #    pass
 
@@ -103,16 +121,16 @@ data = estConnection(port, server)
 #except:
 #    print("Not an active server address. Connection aborted.")
 
-
-while data is not None and data:
+while True:
 #    try:
-        receive(data)
+        data = receive(data)
+
         #data, addr = sock.recvfrom(1024) #receive array
         #print("receiving: {} from {}".format(data,addr))
         # ack = 0
         # sock.sendto(bytes(ack),(server, port))
         # ack += 1
-        closed = disconnection(data, sock,addr)
+        closed = disconnection(data, sock)
         if closed:
             break
 #    except:

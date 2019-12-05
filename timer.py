@@ -1,6 +1,6 @@
 # timer.py - A timer class
-# a class found online for timing. This is not our own work we
-# just using it for our project.
+# this class was found at the following git repo: https://github.com/haseeb-saeed/go-back-N/blob/master/timer.py 
+# We did not write this code.  The original code can be found above.
 import time
 
 class Timer(object):

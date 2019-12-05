@@ -19,8 +19,11 @@ def estConnection(port, host):
             print("Connection Failed")
             sock.close()
 
-def disconnection(data, sock, addr):
-        if data == b'terminated':
+def disconnection(sock, address):
+        sock.sendto(b'close', address)
+        kill, addr = sock.recvfrom(1024)
+        print(kill)
+        if kill:
             sock.sendto(b'okay', addr)
             print("Received close acknowledgement from {}".format(addr))
             print("Connection Closed")
@@ -79,7 +82,4 @@ if __name__ == "__main__":
     sock.bind((host,port))
     address = estConnection(host, port)
     send(sock,address, 'file.txt')
-    kill, addr = sock.recvfrom(1024)
-    print(kill)
-    sock.sendto(b'close', address)
-    disconnection(kill, sock, addr)
+    disconnection(sock,address)

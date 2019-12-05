@@ -13,7 +13,8 @@ def fileWrite(data):
 def receive(data):
     count = 0
     file = open("file.txt", "w")
-    value = True
+    x = 0
+    dataList = []
     #seqNum = 0
     while data is not None:
         t = Timer(5)
@@ -23,19 +24,25 @@ def receive(data):
             #print("1")
             if data and data != b'close':
                 print("Received data: ", data)
+                x +=1
                 text = str(data)
                 if count == 0:
-                    file.write(text)
-                    file.write("\n")
+                    dataList.append(text)
                     count += 1
                     #print("2")
                 else:
-                    file.write(text)
-                    file.write("\n")
+                    dataList.append(text)
                     count = 0
                     #print("3")
                 #temp = str(seqNum)
-                sock.sendto(b'ack', addr)
+
+                if x%3 == 0:
+                    sock.sendto(b'ack', addr)
+                    for a in range (len(dataList)):
+                        file.write(dataList[a])
+                        file.write("\n")
+                    dataList.clear()
+
                 #seqNum += 1
                 #print("4")
             elif data == b'close':
